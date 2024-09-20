@@ -1,187 +1,214 @@
 ﻿using System;
 
-// TODO: Create methods to clear and set blocks in the matrix, to replace method SetBlock and Clear in Matrix class
-
 namespace Tetris
 {
     public class Tetris
     {
-
         private static int keyDelay = 300; // Delay between keypress handling (in ms)
         private static DateTime lastKeyPressTime = DateTime.Now;
+
         public static void Main(string[] args)
         {
             Matrix matrix = new Matrix();
-            Block blocks = new Block(matrix);
-            blocks.DrawBlock();
+            Shape shape = new Shape(matrix);
+
             while (true)
             {
-                //matrix.Clear(); 
                 matrix.Print();
+                shape.Draw();
 
-                for (int i = 0; i < 5; i++)
+                HandleInput(shape);
+
+                if (!shape.MoveDown())
                 {
-                    HandleInput(blocks);
+                    shape = new Shape(matrix); // Create a new shape if current one can't move down
                 }
 
-                if (!blocks.MoveDown())
-                {
-                    blocks = new Block(matrix);
-                    blocks.DrawBlock();
-                }
                 System.Threading.Thread.Sleep(400);
             }
         }
-        private static void HandleInput(Block blocks)
+
+        private static void HandleInput(Shape shape)
         {
-            if (Console.KeyAvailable)
+            if (Console.KeyAvailable && (DateTime.Now - lastKeyPressTime).TotalMilliseconds > keyDelay)
             {
-                // Read key input without blocking
                 ConsoleKeyInfo key = Console.ReadKey(true);
 
-                // Debounce keypress handling to prevent spamming
-                if ((DateTime.Now - lastKeyPressTime).TotalMilliseconds > keyDelay)
-                {
-                    if (key.Key == ConsoleKey.LeftArrow)
-                    {
-                        blocks.MoveLeft();
-                    }
-                    else if (key.Key == ConsoleKey.RightArrow)
-                    {
-                        blocks.MoveRight();
-                    }
+                if (key.Key == ConsoleKey.LeftArrow)
+                    shape.MoveLeft();
+                else if (key.Key == ConsoleKey.RightArrow)
+                    shape.MoveRight();
 
-                    // Update the time of the last key press
-                    lastKeyPressTime = DateTime.Now;
-                }
+                lastKeyPressTime = DateTime.Now;
             }
         }
     }
 
-    //int[,] box_shape = new int[,] {
-    //    {0, 0},
-    //    {0, 1},
-    //    {1, 0},
-    //    {1, 1},
-    //};
-//
-    //public class Shape {
-    //    // Object containing the shape of the block
-    //    // The shape is a 2D array of characters
-//
-    //    public Shape(char[,] shape)
-    //    {
-    //        this.shape = shape;
-    //    }
-    //}
-
-    public class Block
+    public class Shape
     {
-        private int x;
-        private int y;
+        private int[,] shape;
+        private int x, y;
         private Matrix matrix;
+        private static readonly int[][,] shapes = new int[][,] {
 
-        public Block(Matrix matrix)
-        {
-            this.x = 0 % Matrix.HEIGHT;
-            this.y = 6 % Matrix.WIDTH; 
-            this.matrix = matrix;
-        }
-
-        public void MoveLeft()
-        {
-            if (y > 0)
-            {
-                y--;
-                y--;
-                matrix.SetBlock(x, y, '█');
-                matrix.SetBlock(x, y+1, '█');
-                matrix.SetBlock(x, y+2, ' ');
-                matrix.SetBlock(x, y+3, ' ');
-                
+            new int[,]{
+                {0, 0}, {0, 1}, {0, 2}, {0, 3}, {1, 0}, {1, 1}, {1, 2}, {1, 3},
+            },
+            new int[,] {
+                {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, -1}, {0, -2}, {0, 4}, {0, 5},
+            },
+            new int[,] {
+                {1,-2}, {1,-1}, {1,0}, {1,1}, {1, 2}, {1, 3}, {0, 0}, {0, 1},
+            },
+            new int[,] {
+                {1, -2}, {1, -1}, {1, 0}, {1, 1}, {1, 2}, {1, 3}, {0, 2}, {0, 3},
             }
+        };
+
+        public Shape(Matrix matrix)
+        {
+            Random random = new Random();
+            this.shape = shapes[random.Next(0, shapes.GetLength(0))];
+            this.matrix = matrix;
+            // TODO: Implement random color
+            this.x = 0; // Starting position
+            this.y = 8; // Center of the grid
         }
 
-        public void MoveRight()
+        public void Draw()
         {
-            if (y < Matrix.WIDTH - 2)
+            for (int i = 0; i < shape.GetLength(0); i++)
             {
-                y++;
-                y++;
-                matrix.SetBlock(x, y,'█');
-                matrix.SetBlock(x, y+1, '█');
-                matrix.SetBlock(x, y-1, ' ');
-                matrix.SetBlock(x, y-2, ' ');
+                matrix.SetBlock(x + shape[i, 0], y + shape[i, 1], '█');
             }
         }
 
         public bool MoveDown()
         {
-            if (matrix.GetBlock(x+1, y) == '█')
+            if (CanMove(x + 1, y))
             {
-                return false;
-            }
-            else if (x < Matrix.HEIGHT - 1)
-            {
+                Clear();
                 x++;
-                matrix.SetBlock(x, y, '█');
-                matrix.SetBlock(x, y + 1, '█');
-                matrix.SetBlock(x - 1, y, ' ');
-                matrix.SetBlock(x - 1, y + 1, ' ');
+                Draw();
                 return true;
             }
-            else
+            return false;
+        }
+
+        public void MoveLeft()
+        {
+            if (CanMove(x, y - 1))
             {
-                x = 0;
-                return false;
+                Clear();
+                y--;
+                y--;
+                Draw();
             }
         }
 
-        public void DrawBlock()
+        public void MoveRight()
         {
-            if (x < Matrix.HEIGHT && y < Matrix.WIDTH)
+            if (CanMove(x, y + 1))
             {
-                matrix.SetBlock(x, y, '█');
-                matrix.SetBlock(x, y + 1, '█');
+                Clear();
+                y++;
+                y++;
+                Draw();
+            }
+        }
+
+        // TODO: Implement Rotate method
+        // public void Rotate()
+
+        private bool IsPartOfShape(int matrixX, int matrixY)
+        {
+            for (int i = 0; i < shape.GetLength(0); i++)
+            {
+                if (x + shape[i, 0] == matrixX && y + shape[i, 1] == matrixY)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        private bool CanMove(int newX, int newY)
+        {
+            for (int i = 0; i < shape.GetLength(0); i++)
+            {
+                int newBlockX = newX + shape[i, 0];
+                int newBlockY = newY + shape[i, 1];
+
+                if (newBlockX >= Matrix.HEIGHT || newBlockX < 0 || newBlockY < 0 || newBlockY >= Matrix.WIDTH)
+                {
+                    return false;
+                }
+                if (matrix.GetBlock(newBlockX, newBlockY) != ' ' && !IsPartOfShape(newBlockX, newBlockY))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void Clear()
+        {
+            for (int i = 0; i < shape.GetLength(0); i++)
+            {
+                matrix.ClearBlock(x + shape[i, 0], y + shape[i, 1]);
             }
         }
     }
 
     public class Matrix
     {
-        public const int HEIGHT = 22; 
-        public const int WIDTH = 20;  
-
+        public const int HEIGHT = 22;
+        public const int WIDTH = 20;
         private char[,] matrix;
 
         public Matrix()
         {
             matrix = new char[HEIGHT, WIDTH];
-
-            for (int i = 0; i < HEIGHT; i++)
-            {
-                for (int j = 0; j < WIDTH; j++)
-                {
-                    matrix[i, j] = ' ';
-                }
-            }
+            Clear();
         }
 
         public void SetBlock(int x, int y, char c)
         {
-            if (x >= 0 && x < HEIGHT && y >= 0 && y < WIDTH)
+            if (IsInBounds(x, y))
             {
                 matrix[x, y] = c;
             }
         }
 
+        public void ClearBlock(int x, int y)
+        {
+            if (IsInBounds(x, y))
+            {
+                matrix[x, y] = ' ';
+            }
+        }
+
         public char GetBlock(int x, int y)
         {
-            if (x >= 0 && x < HEIGHT && y >= 0 && y < WIDTH)
+            return IsInBounds(x, y) ? matrix[x, y] : 'E';
+        }
+
+        public void Print()
+        {
+            Console.Clear();
+            for (int i = 0; i < HEIGHT; i++)
             {
-                return matrix[x, y];
+                Console.Write("│ ");
+                for (int j = 0; j < WIDTH; j++)
+                {
+                    Console.ForegroundColor = matrix[i, j] == ' ' ? ConsoleColor.DarkBlue : ConsoleColor.DarkBlue;
+                    Console.Write(matrix[i, j]);
+                }
+                Console.ResetColor();
+                Console.WriteLine(" │");
             }
-            return 'E';
+            Console.WriteLine(" ──────────────────────");
         }
 
         public void Clear()
@@ -195,31 +222,9 @@ namespace Tetris
             }
         }
 
-        public void Print()
+        private bool IsInBounds(int x, int y)
         {
-            Console.Clear();
-
-            for (int i = 0; i < HEIGHT; i++)
-            {
-                Console.Write("│ ");
-                for (int j = 0; j < WIDTH; j++)
-                {
-                    if (matrix[i, j] == ' ')
-                    {
-                        //Console.BackgroundColor = ConsoleColor.DarkBlue;
-                        Console.ForegroundColor = ConsoleColor.DarkBlue;
-                    }
-                    else
-                    {
-                        Console.BackgroundColor = ConsoleColor.DarkRed;
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
-                    }
-                    Console.Write(matrix[i, j]);
-                    Console.ResetColor();
-                }
-                Console.WriteLine(" │");
-            }
-            Console.WriteLine(" ──────────────────────");
+            return x >= 0 && x < HEIGHT && y >= 0 && y < WIDTH;
         }
     }
 }
