@@ -11,7 +11,7 @@ namespace Tetris
         {
             Matrix matrix = new Matrix();
             Shape shape = new Shape(matrix);
-
+            matrix.IncreaseScore(10);
             while (true)
             {
                 matrix.Print();
@@ -21,8 +21,11 @@ namespace Tetris
 
                 if (!shape.MoveDown())
                 {
+                    matrix.IncreaseScore(10);
                     shape = new Shape(matrix); // Create a new shape if current one can't move down
-                }
+                    matrix.CheckForCompleteLines();
+                    // Check for game over
+                                }
 
                 System.Threading.Thread.Sleep(400);
             }
@@ -166,6 +169,7 @@ namespace Tetris
         public const int HEIGHT = 22;
         public const int WIDTH = 20;
         private char[,] matrix;
+        private int score = 0;
 
         public Matrix()
         {
@@ -209,6 +213,45 @@ namespace Tetris
                 Console.WriteLine(" │");
             }
             Console.WriteLine(" ──────────────────────");
+
+            Console.WriteLine("Score: " + score);
+        }
+        
+        public void IncreaseScore(int score)
+        {
+            this.score += score;
+        }
+
+        public void CheckForCompleteLines() {
+            for (int i = 0; i < HEIGHT; i++)
+            {
+                bool isComplete = true;
+                for (int j = 0; j < WIDTH; j++)
+                {
+                    if (matrix[i, j] == ' ')
+                    {
+                        isComplete = false;
+                        break;
+                    }
+                }
+                if (isComplete)
+                {
+                    // Remove line
+                    IncreaseScore(100);
+                    for (int j = 0; j < WIDTH; j++)
+                    {
+                        matrix[i, j] = ' ';
+                    }
+                    // Move all lines above one down
+                    for (int k = i; k > 0; k--)
+                    {
+                        for (int j = 0; j < WIDTH; j++)
+                        {
+                            matrix[k, j] = matrix[k - 1, j];
+                        }
+                    }
+                }
+            }
         }
 
         public void Clear()
