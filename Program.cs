@@ -4,14 +4,16 @@ namespace Tetris
 {
     public class Tetris
     {
-        private static int keyDelay = 300; // Delay between keypress handling (in ms)
+        private static int keyDelay = 50; // Delay between keypress handling (in ms)
         private static DateTime lastKeyPressTime = DateTime.Now;
 
         public static void Main(string[] args)
         {
             Matrix matrix = new Matrix();
             Shape shape = new Shape(matrix);
-            matrix.IncreaseScore(10);
+            int previousScore = 0;
+            int SleepTime = 400;
+
             while (true)
             {
                 matrix.Print();
@@ -21,16 +23,25 @@ namespace Tetris
 
                 if (!shape.MoveDown())
                 {
-                    matrix.IncreaseScore(10);
                     shape = new Shape(matrix); // Create a new shape if current one can't move down
                     matrix.CheckForCompleteLines();
-                    // Check for game over
-                                }
+                    if (matrix.IsGameOver() == true)
+                    {
+                        Console.WriteLine("Game Over!");
+                        break;
+                    }
+                }
 
-                System.Threading.Thread.Sleep(400);
+                int score = matrix.GetScore();
+                if (score >= previousScore + 800)
+                {
+                    Speed.SpeedUp();
+                    previousScore = matrix.GetScore();
+                }
+
+                System.Threading.Thread.Sleep(Speed.ShowSpeed());
             }
         }
-
         private static void HandleInput(Shape shape)
         {
             if (Console.KeyAvailable && (DateTime.Now - lastKeyPressTime).TotalMilliseconds > keyDelay)
@@ -46,6 +57,22 @@ namespace Tetris
             }
         }
     }
+
+    public class Speed()
+    {
+        private static int speed = 400;
+
+        public static int ShowSpeed()
+        {
+            return speed;
+        }
+
+        public static void SpeedUp()
+        {
+            speed -= 50;
+        }
+    }
+
 
     public class Shape
     {
@@ -65,7 +92,13 @@ namespace Tetris
             },
             new int[,] {
                 {1, -2}, {1, -1}, {1, 0}, {1, 1}, {1, 2}, {1, 3}, {0, 2}, {0, 3},
-            }
+            },
+            new int[,] {
+                {1, -2}, {1, -1}, {1, 0}, {1, 1}, {1, 2}, {1, 3}, {0, -2}, {0, -1},
+            },
+            new int[,] {
+                {1, -2}, {1,-1}, {1,0}, {1,1}, {0,0},{0,1}, {0,2}, {0,3}
+            },
         };
 
         public Shape(Matrix matrix)
@@ -73,6 +106,7 @@ namespace Tetris
             Random random = new Random();
             this.shape = shapes[random.Next(0, shapes.GetLength(0))];
             this.matrix = matrix;
+            matrix.IncreaseScore(10);
             // TODO: Implement random color
             this.x = 0; // Starting position
             this.y = 8; // Center of the grid
@@ -216,13 +250,18 @@ namespace Tetris
 
             Console.WriteLine("Score: " + score);
         }
-        
+
+        public int GetScore()
+        {
+            return score;
+        }
         public void IncreaseScore(int score)
         {
             this.score += score;
         }
 
-        public void CheckForCompleteLines() {
+        public void CheckForCompleteLines()
+        {
             for (int i = 0; i < HEIGHT; i++)
             {
                 bool isComplete = true;
@@ -252,6 +291,18 @@ namespace Tetris
                     }
                 }
             }
+        }
+
+        public bool IsGameOver()
+        {
+            for (int i = 0; i < WIDTH; i++)
+            {
+                if (matrix[0, i] != ' ')
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void Clear()
