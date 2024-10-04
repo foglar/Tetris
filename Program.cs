@@ -12,7 +12,6 @@ namespace Tetris
             Matrix matrix = new Matrix();
             Shape shape = new Shape(matrix);
             int previousScore = 0;
-            int SleepTime = 400;
 
             while (true)
             {
@@ -23,7 +22,7 @@ namespace Tetris
 
                 if (!shape.MoveDown())
                 {
-                    shape = new Shape(matrix); // Create a new shape if current one can't move down
+                    shape = new Shape(matrix);
                     matrix.CheckForCompleteLines();
                     if (matrix.IsGameOver() == true)
                     {
@@ -42,18 +41,25 @@ namespace Tetris
                 System.Threading.Thread.Sleep(Speed.ShowSpeed());
             }
         }
+
+        // TODO: Improve input handling
         private static void HandleInput(Shape shape)
         {
-            if (Console.KeyAvailable && (DateTime.Now - lastKeyPressTime).TotalMilliseconds > keyDelay)
+            for (int i = 0; i < 5; i++)
             {
-                ConsoleKeyInfo key = Console.ReadKey(true);
+                if (Console.KeyAvailable)
+                {
+                    ConsoleKeyInfo key = Console.ReadKey(true);
 
-                if (key.Key == ConsoleKey.LeftArrow)
-                    shape.MoveLeft();
-                else if (key.Key == ConsoleKey.RightArrow)
-                    shape.MoveRight();
-
-                lastKeyPressTime = DateTime.Now;
+                    if (key.Key == ConsoleKey.LeftArrow)
+                        shape.MoveLeft();
+                    else if (key.Key == ConsoleKey.RightArrow)
+                        shape.MoveRight();
+                    else if (key.Key == ConsoleKey.UpArrow)
+                        shape.Rotate();
+                    else if (key.Key == ConsoleKey.DownArrow)
+                        shape.MoveDown();
+                }
             }
         }
     }
@@ -76,35 +82,22 @@ namespace Tetris
 
     public class Shape
     {
-        private int[,] shape;
+        private int[,] current_shape;
+        private int randomRotation;
+        private int randomShape;
+
+        private static List<List<int[,]>> shapes = ShapesData.shapes;
+        private static List<int[,]> shape;
+
         private int x, y;
         private Matrix matrix;
-        private static readonly int[][,] shapes = new int[][,] {
-
-            new int[,]{
-                {0, 0}, {0, 1}, {0, 2}, {0, 3}, {1, 0}, {1, 1}, {1, 2}, {1, 3},
-            },
-            new int[,] {
-                {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, -1}, {0, -2}, {0, 4}, {0, 5},
-            },
-            new int[,] {
-                {1,-2}, {1,-1}, {1,0}, {1,1}, {1, 2}, {1, 3}, {0, 0}, {0, 1},
-            },
-            new int[,] {
-                {1, -2}, {1, -1}, {1, 0}, {1, 1}, {1, 2}, {1, 3}, {0, 2}, {0, 3},
-            },
-            new int[,] {
-                {1, -2}, {1, -1}, {1, 0}, {1, 1}, {1, 2}, {1, 3}, {0, -2}, {0, -1},
-            },
-            new int[,] {
-                {1, -2}, {1,-1}, {1,0}, {1,1}, {0,0},{0,1}, {0,2}, {0,3}
-            },
-        };
-
         public Shape(Matrix matrix)
         {
             Random random = new Random();
-            this.shape = shapes[random.Next(0, shapes.GetLength(0))];
+            randomShape = random.Next(0, shapes.Count);
+            shape = shapes[randomShape];
+            randomRotation = random.Next(0, shape.Count);
+            current_shape = shape[randomRotation];
             this.matrix = matrix;
             matrix.IncreaseScore(10);
             // TODO: Implement random color
@@ -114,9 +107,9 @@ namespace Tetris
 
         public void Draw()
         {
-            for (int i = 0; i < shape.GetLength(0); i++)
+            for (int i = 0; i < current_shape.GetLength(0); i++)
             {
-                matrix.SetBlock(x + shape[i, 0], y + shape[i, 1], '█');
+                matrix.SetBlock(x + current_shape[i, 0], y + current_shape[i, 1], '█');
             }
         }
 
@@ -154,14 +147,20 @@ namespace Tetris
             }
         }
 
-        // TODO: Implement Rotate method
-        // public void Rotate()
+        public void Rotate()
+        {
+            Clear();
+            randomRotation = (randomRotation + 1) % shape.Count;
+            // !IMPORTANT: Check if rotation is possible
+            current_shape = shape[randomRotation];
+            Draw();
+        }
 
         private bool IsPartOfShape(int matrixX, int matrixY)
         {
-            for (int i = 0; i < shape.GetLength(0); i++)
+            for (int i = 0; i < current_shape.GetLength(0); i++)
             {
-                if (x + shape[i, 0] == matrixX && y + shape[i, 1] == matrixY)
+                if (x + current_shape[i, 0] == matrixX && y + current_shape[i, 1] == matrixY)
                 {
                     return true;
                 }
@@ -172,10 +171,10 @@ namespace Tetris
 
         private bool CanMove(int newX, int newY)
         {
-            for (int i = 0; i < shape.GetLength(0); i++)
+            for (int i = 0; i < current_shape.GetLength(0); i++)
             {
-                int newBlockX = newX + shape[i, 0];
-                int newBlockY = newY + shape[i, 1];
+                int newBlockX = newX + current_shape[i, 0];
+                int newBlockY = newY + current_shape[i, 1];
 
                 if (newBlockX >= Matrix.HEIGHT || newBlockX < 0 || newBlockY < 0 || newBlockY >= Matrix.WIDTH)
                 {
@@ -191,9 +190,9 @@ namespace Tetris
 
         private void Clear()
         {
-            for (int i = 0; i < shape.GetLength(0); i++)
+            for (int i = 0; i < current_shape.GetLength(0); i++)
             {
-                matrix.ClearBlock(x + shape[i, 0], y + shape[i, 1]);
+                matrix.ClearBlock(x + current_shape[i, 0], y + current_shape[i, 1]);
             }
         }
     }
