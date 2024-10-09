@@ -1,9 +1,11 @@
-﻿# Tetris Game  
+﻿# Tetris Game
+
 Version: 0.1  
 Author: Filip Kohout  
 Date: 20/09/2024  
 
-## Table of Contents  
+## Table of Contents
+
 1. Document Edit History  
 2. Introduction  
 3. Service Development  
@@ -14,15 +16,16 @@ Date: 20/09/2024
 
 ---
 
-## Document Edit History  
+## Document Edit History
 
 | Version | Author         | Comment Message         |  
 |---------|----------------|-------------------------|  
 | 0.1     | Filip Kohout    | First game estimates    |  
+| 0.2     | Filip Kohout    | Defined blocks          |
 
 ---
 
-## Introduction  
+## Introduction
 
 **Purpose of the document:** The purpose of the document is to describe all the functional and non-functional requirements for the CLI-based Tetris game development project. This document serves as a guide for programmers, testers, and stakeholders, providing a clear overview of the system's requirements to ensure the game's development adheres to the design and expectations.  
 
