@@ -11,23 +11,6 @@ namespace Tetris
 
     public static void Main(string[] args)
     {
-      // Music player
-#if _WINDOWS
-      SoundPlayer player = new SoundPlayer("song.wav");
-      player.PlayLooping();
-#endif
-
-      //using (var audioFile = new AudioFileReader(audioFile)) using (
-      //var outputDevice = new WaveOutEvent())
-      //{
-      //  outputDevice.Init(audioFile);
-      //  outputDevice.Play();
-      //  while (outputDevice.PlaybackState == PlaybackState.Playing)
-      //  {
-      //    Thread.Sleep(1000);
-      //  }
-      //}
-
       Matrix matrix = new Matrix();
       Shape shape = new Shape(matrix);
       int previousScore = 0;
@@ -58,9 +41,6 @@ namespace Tetris
         }
 
         System.Threading.Thread.Sleep(Speed.ShowSpeed());
-#if _WINDOWS
-          player.Stop();
-#endif
       }
     }
 

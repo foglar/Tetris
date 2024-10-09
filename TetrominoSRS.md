@@ -6,7 +6,7 @@ Date: 20/09/2024
 
 ## Table of Contents
 
-1. Document Edit History  
+1. Document Edit History
 2. Introduction  
 3. Service Development  
 4. Service Purpose  
