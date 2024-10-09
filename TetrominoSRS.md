@@ -69,6 +69,7 @@ The game will rely on simple keyboard input for interaction and console output f
 The primary purpose of this project is to create a minimalist version of Tetris that can run in any terminal or command-line interface. This game is designed for users who enjoy retro-style gaming experiences without needing a graphical environment. It also provides a fun way to practice logical thinking and quick decision-making, as the game increases in difficulty with every level.
 
 Key purposes:
+
 - Provide an engaging and simple game for retro gamers or users with minimal system resources.
 - Offer an accessible gaming option that works on most operating systems.
 - Allow players to compete for high scores in a lightweight, resource-efficient environment.
@@ -86,8 +87,10 @@ Functional requirements define the core behavior and features of the Tetris game
    - The grid should be displayed using characters or symbols for blocks.
 
 2. **Tetromino Types**  
-   - The game must include all seven standard tetromino shapes: I, O, T, L, J, S, Z.
+   - The game must include all seven standard tetromino shapes: I, O, T, L, J, S, Z (shapes are specified in the image below)
    - Tetrominoes should be represented using characters.
+
+   ![tetris block images](./ARS-pieces.png)
 
 3. **Tetromino Movement**  
    - Players must be able to move tetrominoes left and right using keyboard inputs.
