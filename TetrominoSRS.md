@@ -92,6 +92,15 @@ Functional requirements define the core behavior and features of the Tetris game
 2. **Tetromino Types**  
    - The game must include all seven standard tetromino shapes: I, O, T, L, J, S, Z (shapes are specified in the image below)
    - Tetrominoes should be represented using characters.
+   - Definitions:
+        - Tetromino shapes and definitions of the shapes
+        - Shape I - shape 4 squares long (red)
+        - Shape O - shape of square created from 4 squares (yellow)
+        - Shape T - shape of "T" constructed from 4 squares (light blue)
+        - Shape L - shape that looks like L from 4 squares (orange)
+        - Shape J - shape that is like L but mirrored (dark blue)
+        - Shape S - shape that looks like S constructed in two rows (pink)
+        - Shape Z - shape that looks like mirrored S (green)
 
    ![tetris block images](./ARS-pieces.png)
 
